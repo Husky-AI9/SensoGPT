@@ -80,9 +80,8 @@ class LandUseSegmentation:
     def inference(self, inputs):
         image_path, det_prompt = inputs.split(",")
         updated_image_path = get_new_image_name(image_path, func_name="landuse")
-        updated_image_path = 'image/aew_landuse_423.png'
         text = det_prompt+' segmentation result in '+updated_image_path
-        #text=self.func.inference(image_path, det_prompt,updated_image_path)
+        text=self.func.inference(image_path, det_prompt,updated_image_path)
         return text
 
 class ObjectDetection:
