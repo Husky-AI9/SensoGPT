@@ -1,0 +1,6 @@
+langchain
+imageio
+numpy
+openai
+opencv-python
+scikit-image

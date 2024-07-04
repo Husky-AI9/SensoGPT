@@ -1,0 +1,1 @@
+from RStask.ImageCaptioning.caption import GeminiCaption as CaptionFunction
