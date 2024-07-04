@@ -5,7 +5,7 @@ SensoGPT is an innovative solution that integrates ChatGPT with AI-based remote 
 
 
 ### Usage
-->Clone the repository:git clone https://github.com/TruonghuyMai/SensoGPT
+->Clone the repository "git clone https://github.com/TruonghuyMai/SensoGPT"
 
 ->Change diretory into the backend
 
