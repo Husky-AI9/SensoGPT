@@ -10,17 +10,17 @@ from langchain.agents.initialize import initialize_agent
 from langchain.agents.tools import Tool
 from langchain.chains.conversation.memory import ConversationBufferMemory
 import numpy as np
-from Prefix import  RS_CHATGPT_PREFIX, RS_CHATGPT_FORMAT_INSTRUCTIONS, RS_CHATGPT_SUFFIX
-from RStask import ImageEdgeFunction,CaptionFunction,DetectionFunction,LanduseFunction
+from Prefix import  RS_SENSOGPT_PREFIX, RS_SENSOGPT_FORMAT_INSTRUCTIONS, RS_SENSOGPT_SUFFIX
+from RStask import ImageEdgeFunction,CaptionFunction,DetectionFunction,LanduseFunction,InstanceFunction
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import List
 import base64
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_community.llms import GPT4All
 
-OPENAI_API_KEY = "OPENAI_API_KEY_HERE"
-GEMINI_API_KEY = "GEMINI_API_KEY_HERE"
+GEMINI_API_KEY = ""
 
 class MediaItem(BaseModel):
     data: str
@@ -33,7 +33,6 @@ class RequestBody(BaseModel):
     general_settings: dict
     safety_settings: dict
 
-os.makedirs('in_mage', exist_ok=True)
 app = FastAPI()
 
 # Allow CORS for your frontend
@@ -66,6 +65,23 @@ def get_new_image_name(org_img_name, func_name="update"):
     recent_prev_file_name = name_split[0]
     new_file_name = f'{this_new_uuid}_{func_name}_{recent_prev_file_name}.png'.replace('__','_')
     return os.path.join(head, new_file_name)
+
+class InstanceSegmentation:
+    def __init__(self, device):
+        print("Initializing InstanceSegmentation")
+        self.func=InstanceFunction(device)
+    @prompts(name="Instance Segmentation for Remote Sensing Image",
+             description="useful when you want to apply man-made instance segmentation for the image. The expected input category include plane, ship, storage tank, baseball diamond, tennis court, basketball court, ground track field, harbor, bridge, vehicle, helicopter, roundabout, soccer ball field, and swimming pool."
+                         "like: extract plane from this image, "
+                         "or predict the ship in this image, or extract tennis court from this image, segment harbor from this image, Extract the vehicle in the image. "
+                         "The input to this tool should be a comma separated string of two, "
+                         "representing the image_path, the text of the category,selected from plane, or ship, or storage tank, or baseball diamond, or tennis court, or basketball court, or ground track field, or harbor, or bridge, or vehicle, or helicopter, or roundabout, or soccer ball field, or  swimming pool. ")
+    def inference(self, inputs):
+        image_path, det_prompt = inputs.split(",")
+        updated_image_path = get_new_image_name(image_path, func_name="instance_" + det_prompt)
+        text=self.func.inference(image_path, det_prompt,updated_image_path)
+        return text
+
 class LandUseSegmentation:
     def __init__(self, device):
         print("Initializing LandUseSegmentation")
@@ -97,7 +113,6 @@ class ObjectDetection:
 
     def inference(self, inputs):
         image_path, det_prompt = inputs.split(",")
-        print("********************************************")
         updated_image_path = get_new_image_name(image_path, func_name="detection_" + det_prompt.replace(' ', '_'))
         log_text=self.func.inference(image_path, det_prompt,updated_image_path)
         return log_text
@@ -157,12 +172,12 @@ class SensoChatGPT:
                     func = getattr(instance, e)
                     self.tools.append(Tool(name=func.name, description=func.description, func=func))
 
-        self.llm = ChatOpenAI(api_key=OPENAI_API_KEY, base_url=proxy_url, model_name=gpt_name,temperature=0)
+        self.llm = GPT4All(model="Nous-Hermes-2-Mistral-7B-DPO.Q4_0.gguf")
         self.memory = ConversationBufferMemory(memory_key="chat_history", output_key='output')
 
     def initialize(self):
         self.memory.clear() #clear previous history
-        PREFIX, FORMAT_INSTRUCTIONS, SUFFIX = RS_CHATGPT_PREFIX, RS_CHATGPT_FORMAT_INSTRUCTIONS, RS_CHATGPT_SUFFIX
+        PREFIX, FORMAT_INSTRUCTIONS, SUFFIX = RS_SENSOGPT_PREFIX, RS_SENSOGPT_FORMAT_INSTRUCTIONS, RS_SENSOGPT_SUFFIX
         self.agent = initialize_agent(
             self.tools,
             self.llm,
@@ -201,7 +216,7 @@ class SensoChatGPT:
 proxy_url = None
 gpt_name="gpt-4-turbo"
 state = []
-load = "ImageCaptioning_cuda:0,ObjectDetection_cuda:0,LandUseSegmentation_cpu,EdgeDetection_cpu"
+load = "ImageCaptioning_cuda:0,ObjectDetection_cuda:0,LandUseSegmentation_cuda:0,InstanceSegmentation_cuda:0,EdgeDetection_cpu"
 load_dict = {e.split('_')[0].strip(): e.split('_')[1].strip() for e in load.split(',')}
 bot = SensoChatGPT(gpt_name=gpt_name,load_dict=load_dict,proxy_url=proxy_url)
 bot.initialize()
@@ -262,6 +277,21 @@ async def run_image_endpoint(request: RequestBody):
     elif "runs/obb/" in result_string:
         # Extract the predicted image path from result[0]
         pattern = r"\S*runs/obb/[^ ]*"
+        # Find all matches
+        matches = re.findall(pattern, result_string)
+        predicted_image_path = matches[0]
+        predicted_image_path = predicted_image_path.strip('"')
+        print(predicted_image_path)
+        png_position = predicted_image_path.find('png') + len('png')
+        cleaned_string = predicted_image_path[:png_position]
+        cleaned_string = cleaned_string.replace("![](file=","")
+        # Read and encode the predicted image
+        with open(cleaned_string, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        result_image = encoded_image
+    
+    elif "segment" in result_string:
+        pattern = r"\S*segment/[^ ]*"
         # Find all matches
         matches = re.findall(pattern, result_string)
         predicted_image_path = matches[0]

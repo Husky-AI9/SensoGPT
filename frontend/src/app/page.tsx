@@ -10,19 +10,6 @@ export default function Home() {
   const { selectedModel } = useControlContext();
 
   return (
-    // <main classNameName="grid md:grid-cols-12 max-h-screen md:h-screen max-w-6xl m-auto gap-4 p-2 md:p-4 my-12 md:my-0">
-    //   <div classNameName="relative md:col-span-3 h-[95vh]">
-    //     <ControlContainer />
-    //   </div>
-    //   <div classNameName="md:col-span-9">
-    //     {selectedModel === "gemini-pro" ? (
-    //       <ChatContainer />
-    //     ) : (
-    //       <VisionContainer />
-    //     )}
-    //   </div>
-    // </main>
-
     <section className="pt-24 bg-white">
     <div className="px-12 mx-auto max-w-7xl">
         <div className="w-full mx-auto text-left md:w-11/12 xl:w-9/12 md:text-center">
@@ -30,7 +17,7 @@ export default function Home() {
                <span className="block w-full py-2 text-transparent bg-clip-text leading-12 bg-gradient-to-r from-blue-400 to-purple-500 lg:inline">SenoGPT </span>
             </h1>
             <p className="px-0 mb-8 text-lg text-gray-600 md:text-xl lg:px-24">
-                Start gaining the traction you've always wanted with our next-level templates and designs. Crafted to help you tell your story.
+            SensoGPT: Revolutionizing geospatial analysis with AI-driven remote sensing tools.
             </p>
             <div className="mb-4 space-x-0 md:space-x-2 md:mb-8">
             <Link legacyBehavior href="/chat">
@@ -48,14 +35,14 @@ export default function Home() {
         <div className="w-full mx-auto mt-20 text-center md:w-10/12">
             <div className="relative z-0 w-full mt-8">
                 <div className="relative overflow-hidden shadow-2xl">
-                    <div className="flex items-center flex-none px-4 bg-green-400 rounded-b-none h-11 rounded-xl">
+                    <div className="flex items-center flex-none px-4 bg-slate-400 rounded-b-none h-11 rounded-xl">
                         <div className="flex space-x-1.5">
                             <div className="w-3 h-3 border-2 border-white rounded-full"></div>
                             <div className="w-3 h-3 border-2 border-white rounded-full"></div>
                             <div className="w-3 h-3 border-2 border-white rounded-full"></div>
                         </div>
                     </div>
-                    <img src="https://cdn.devdojo.com/images/march2021/green-dashboard.jpg"></img>
+                    <img src="https://i.ibb.co/j3LXZ9s/Screenshot-2024-07-13-203841.png"></img>
                 </div>
             </div>
         </div>

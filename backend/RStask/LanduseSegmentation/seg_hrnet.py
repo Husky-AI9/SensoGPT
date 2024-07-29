@@ -474,6 +474,16 @@ class HRNet48(nn.Module):
     def inference(self,image_path, det_prompt,updated_image_path):
         det_prompt=det_prompt.strip()
         image = torch.from_numpy(io.imread(image_path))
+        # Check the number of channels
+        if image.shape[2] == 4:
+            # If the image has 4 channels (RGBA), use only the first 3 channels (RGB)
+            print("Image has 4 channel")
+            image = image[:, :, :3]
+
+        # Ensure the image has 3 channels
+        if image.shape[2] != 3:
+            raise ValueError("Image must have 3 channels (RGB)")
+
         image = (image.permute(2, 0, 1).unsqueeze(0) - self.mean) / self.std
         with torch.no_grad():
             b, c, h, w = image.shape
