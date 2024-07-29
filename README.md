@@ -17,11 +17,11 @@ SensoGPT is an innovative solution that integrates ChatGPT with AI-based remote 
 
 ->Run "pip install -r requirements.txt"
 
+-> Dowload [weight(Google)](https://drive.google.com/file/d/165jeD0oi6fSpvWrpgfVBbzUOsyHN0xEq/view?usp=drive_link) and put it into the checkpoints folder
+
 ->Open main.py in the backend folder
 
-->Replace OPENAI_API_KEY with your OPENAI key
-
-->Replace GEMINI_API_KEY with your GEMINI key
+->Replace GEMINI_API_KEY in main.py with your GEMINI key
 
 ->Close the file and in the same directory run "uvicorn main:app"
 
